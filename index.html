@@ -34,16 +34,18 @@
   var d=document.documentElement;
   function sysScale(){
     try{
+      /* 측정용 글자는 body 아래에 두고 text-size-adjust를 따로 정하지 않아요: 앱이 body에 글자 확대를 넣어도 똑같이 물려받아 측정돼요 */
+      var host=document.body||d;
       var f='100px sans-serif',s=document.createElement('span');
-      s.style.cssText='position:absolute;visibility:hidden;left:-9999px;top:0;white-space:nowrap;font:'+f+';letter-spacing:0;-webkit-text-size-adjust:100%';
+      s.style.cssText='position:absolute;visibility:hidden;left:-9999px;top:0;white-space:nowrap;font:'+f+';letter-spacing:0';
       s.textContent='가나다라마바사 ABCabc 0123';
-      d.appendChild(s);
+      host.appendChild(s);
       var dom=s.getBoundingClientRect().width;
       var k2=parseFloat(getComputedStyle(s).fontSize)/100;
-      d.removeChild(s);
+      host.removeChild(s);
       var e=document.createElement('div');
       e.style.cssText='position:absolute;visibility:hidden;left:-9999px;font-size:100px;width:1em;height:0';
-      d.appendChild(e);var k3=e.getBoundingClientRect().width/100;d.removeChild(e);
+      host.appendChild(e);var k3=e.getBoundingClientRect().width/100;host.removeChild(e);
       var c=document.createElement('canvas').getContext('2d');
       c.font=f;
       var ref=c.measureText('가나다라마바사 ABCabc 0123').width;
@@ -62,8 +64,27 @@
     var z=Math.min(1,w/390);
     d.style.zoom=z<1?String(z):'';
     d.style.setProperty('--vh',((window.innerHeight||800)/z)+'px');
+    lastStyle=d.getAttribute('style')||'';
   }
+  var lastStyle='';
   fit();
+  /* body가 생긴 뒤(측정이 더 정확) 그리고 앱이 나중에 html/body style이나 <style>로 글자 확대를 넣을 때도 다시 맞춰요 */
+  document.addEventListener('DOMContentLoaded',fit);
+  window.addEventListener('load',fit);
+  if(window.MutationObserver){
+    var moT=0,mo=new MutationObserver(function(recs){
+      for(var i=0;i<recs.length;i++){
+        var r=recs[i];
+        if(r.target===d&&(d.getAttribute('style')||'')===lastStyle)continue; /* 우리가 방금 쓴 값이면 무시 */
+        clearTimeout(moT);moT=setTimeout(fit,60);return;
+      }
+    });
+    mo.observe(d,{attributes:true,attributeFilter:['style']});
+    document.addEventListener('DOMContentLoaded',function(){
+      mo.observe(document.body,{attributes:true,attributeFilter:['style']});
+      mo.observe(document.head,{childList:true});
+    });
+  }
   /* ?dbg=1 로 열면 화면 아래에 측정값을 보여줘요 (카톡 인앱 브라우저에서 글자·버튼이 커질 때 원인 확인용) */
   if(/[?&]dbg=1(&|$)/.test(location.search)){
     window.addEventListener('DOMContentLoaded',function(){
@@ -114,9 +135,10 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:calc(16px*var(--fk,1));line-height:1.6;-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:calc(16px*var(--fk,1));line-height:1.6;-webkit-text-size-adjust:100%!important}
 /* ── 모든 폰에서 같은 모습: 라이트 고정 · 한국어 단어 단위 줄바꿈 · 글자 크기 자동 조절 ── */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;color-scheme:only light;background:#f4f5f7;overflow-x:clip}
+/* (!important: 인앱 브라우저가 html/body 인라인 style로 글자 확대를 넣는 경우에도 지지 않게) */
+html{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important;color-scheme:only light;background:#f4f5f7;overflow-x:clip}
 body{word-break:keep-all;overflow-wrap:break-word;line-break:strict;font-synthesis:none}
 h1,h2,h3,.sxt,.nt-title,.st,.tcq,.ptit{text-wrap:balance}
 button,.lnk,.tag,.tb,.cb,.ttbtn,.ttb,.ttk{word-break:keep-all}
@@ -534,6 +556,25 @@ h2{font-size:calc(18px*var(--fk,1));font-weight:700;margin:0 0 10px}
 .nbl{display:block;text-align:center;line-height:1.3;white-space:nowrap}
 .nt-row{width:100%;max-width:330px;justify-content:center}
 .nt-row .seat{flex:1 1 0;min-width:0;max-width:52px;width:auto}
+
+/* ── 글자 확대 대응(카톡 '가가'·폰 글자 크기 설정이 상쇄되지 않을 때): 1.3~1.6배로 커져도 줄바꿈으로 흡수, 가로 넘침·버튼 겹침 없게. 100%에선 모습 그대로 ── */
+.top>div{min-width:0}
+.sub,.prow .ptxt,.prow .trust .tt,.rt,.tag,.ttd,.btn2 .lnk,.nbl,.lnk.inl,.ttbtn{white-space:normal}
+.prow,.trow{flex-wrap:wrap}
+.trow .st{flex:1 1 0;min-width:35%}                     /* 제목 옆 버튼·표시가 안 들어가면 아래 줄로 내려가요 (제목은 최소 35% 확보) */
+.trow>.nowwrap,.trow>.rt,.trow>.tag{margin-left:auto;max-width:100%}
+.nowwrap{flex-wrap:wrap;justify-content:flex-end}
+.lnk,.lnk.inl,.btn2 .lnk{max-width:100%;text-align:center;line-height:1.3;padding-top:5px;padding-bottom:5px}
+.btn2 .lnk{line-height:1.25;padding-left:6px;padding-right:6px}
+.btn2 .lnk:first-child{flex:2}                          /* '학원에 알리고 자리 선택'이 100%에서 한 줄로 들어가게(이전엔 글자가 버튼 밖으로 삐져나갔음) */
+.cp,.callbtn{width:auto;min-width:112px}
+.bi .bn{white-space:normal;overflow-wrap:anywhere}
+/* 시간표 줄: 오른쪽 버튼을 겹쳐 놓는 대신 격자 칸으로 → 글자가 커지면 버튼이 넓어지고 날짜·시간이 줄바꿈돼요 */
+.ttp{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px;padding-right:10px}
+.ttp>*{grid-column:1}
+.ttk{justify-self:start}
+.ttbtn{position:static;transform:none;grid-column:2;grid-row:1/span 6;width:auto;min-width:106px;max-width:45%;padding:6px 8px 6px 12px;line-height:1.2;text-align:center;justify-self:end}
+.ttbtn:active{transform:scale(.96)}
 </style>
 </head>
 <body>
