@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
 <meta name="theme-color" content="#f4f5f7">
@@ -39,23 +39,48 @@
       s.textContent='가나다라마바사 ABCabc 0123';
       d.appendChild(s);
       var dom=s.getBoundingClientRect().width;
+      var k2=parseFloat(getComputedStyle(s).fontSize)/100;
       d.removeChild(s);
+      var e=document.createElement('div');
+      e.style.cssText='position:absolute;visibility:hidden;left:-9999px;font-size:100px;width:1em;height:0';
+      d.appendChild(e);var k3=e.getBoundingClientRect().width/100;d.removeChild(e);
       var c=document.createElement('canvas').getContext('2d');
       c.font=f;
       var ref=c.measureText('가나다라마바사 ABCabc 0123').width;
-      var k=dom/ref;
+      var k1=dom/ref;
+      var k=Math.max(k1,k2||1,k3||1);
+      window.__sysDbg={k1:k1,k2:k2,k3:k3};
       return (k>0.5&&k<2.5&&Math.abs(k-1)>0.03)?k:1;
     }catch(e){return 1}
   }
   window.__sysScale=sysScale;
   function fit(){
+    var vv=window.visualViewport;
+    var w=Math.min(window.innerWidth||390,screen.width||390,vv?Math.round(vv.width*vv.scale):1e9);
     d.style.zoom='';
     d.style.setProperty('--fk',String(1/sysScale()));
-    var w=window.innerWidth||390,z=Math.min(1,w/390);
+    var z=Math.min(1,w/390);
     d.style.zoom=z<1?String(z):'';
     d.style.setProperty('--vh',((window.innerHeight||800)/z)+'px');
   }
   fit();
+  /* ?dbg=1 로 열면 화면 아래에 측정값을 보여줘요 (카톡 인앱 브라우저에서 글자·버튼이 커질 때 원인 확인용) */
+  if(/[?&]dbg=1(&|$)/.test(location.search)){
+    window.addEventListener('DOMContentLoaded',function(){
+      var b=document.createElement('pre');
+      b.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99999;margin:0;padding:6px 8px;background:rgba(0,0,0,.85);color:#7CFC00;font:11px/1.45 monospace;white-space:pre-wrap;word-break:break-all;pointer-events:none';
+      document.body.appendChild(b);
+      function show(){
+        var vv=window.visualViewport,g=window.__sysDbg||{};
+        b.textContent=['innerW '+window.innerWidth+' / screenW '+screen.width+' / vvW '+(vv?Math.round(vv.width*vv.scale):'-')+' / dpr '+window.devicePixelRatio,
+          'zoom '+d.style.zoom+' / fk '+d.style.getPropertyValue('--fk')+' / sys '+sysScale().toFixed(3),
+          'k1(dom/canvas) '+(+g.k1||0).toFixed(3)+'  k2(computed) '+(+g.k2||0).toFixed(3)+'  k3(em) '+(+g.k3||0).toFixed(3),
+          'body font '+getComputedStyle(document.body).fontSize+' / scrollW '+d.scrollWidth+' clientW '+d.clientWidth,
+          navigator.userAgent.slice(-70)].join(String.fromCharCode(10));
+      }
+      show();setTimeout(show,800);setTimeout(show,2500);window.addEventListener('resize',show);
+    });
+  }
   window.addEventListener('resize',fit);
   window.addEventListener('orientationchange',fit);
   window.addEventListener('pageshow',fit);
@@ -91,7 +116,7 @@
 html,body{margin:0;padding:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:calc(16px*var(--fk,1));line-height:1.6;-webkit-text-size-adjust:100%}
 /* ── 모든 폰에서 같은 모습: 라이트 고정 · 한국어 단어 단위 줄바꿈 · 글자 크기 자동 조절 ── */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;color-scheme:only light;background:#f4f5f7}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;color-scheme:only light;background:#f4f5f7;overflow-x:clip}
 body{word-break:keep-all;overflow-wrap:break-word;line-break:strict;font-synthesis:none}
 h1,h2,h3,.sxt,.nt-title,.st,.tcq,.ptit{text-wrap:balance}
 button,.lnk,.tag,.tb,.cb,.ttbtn,.ttb,.ttk{word-break:keep-all}
