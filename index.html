@@ -13,6 +13,20 @@
 <meta property="og:image" content="https://knadlg1.github.io/followup/og-logo.png">
 <meta property="og:url" content="https://knadlg1.github.io/followup/">
 <meta name="description" content="사하제일간호학원 수강 등록 안내">
+<link rel="preconnect" href="https://us-central1-my-attendance-8122d.cloudfunctions.net" crossorigin>
+<style>html.fu-wait h1{visibility:hidden}</style>
+<script>
+/* 개인 링크(?t=)로 열면 내 정보 요청을 페이지 맨 앞에서 바로 시작하고, 응답이 오기 전에는 예시 이름(김민지님)이 보이지 않게 가려요.
+   이전에 받은 이름이 이 폰에 있으면 바로 보여줘요. (본문 아래쪽 스크립트가 이 요청 결과를 이어받아요) */
+(function(){try{
+  var t=new URLSearchParams(location.search).get('t')||'';
+  if(!/^[A-Za-z0-9_-]{20,64}$/.test(t))return;
+  var cached='';try{cached=localStorage.getItem('sahajeil-followup:nm:'+t)||'';}catch(e){}
+  if(cached){document.addEventListener('DOMContentLoaded',function(){var n=document.querySelector('h1 .nm');if(n)n.textContent=cached+'님';});}
+  else document.documentElement.className+=' fu-wait';
+  window.__fuFirst=fetch('https://us-central1-my-attendance-8122d.cloudfunctions.net/getFollowup',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({token:t})}).then(function(r){return r.json();});
+}catch(e){}})();
+</script>
 <script>
 /* 화면 폭이 390px보다 좁으면 페이지 전체(글자·버튼·간격)를 같은 비율로 줄여요. 배치는 그대로.
    폰의 '글자 크기' 설정(시스템 글꼴 배율)은 측정해서 상쇄 → 항상 같은 크기. (--fk = 1/배율) */
@@ -610,11 +624,18 @@ function saveLocalState(){
     if(sv&&sv.seat&&typeof sv.seat==='object'){seat.notified=!!sv.seat.notified;seat.id=String(sv.seat.id||'');seat.at=+sv.seat.at||0;seat.confirmed=!!sv.seat.confirmed;}
   }catch(e){}
 })();
+/* 이름을 못 불러왔을 때: 예시 이름(김민지님)이 남아 있지 않게 이름 없이 보여줘요 */
+function fuNoName(){
+  document.documentElement.classList.remove('fu-wait');
+  var h=document.querySelector('h1');
+  if(h&&h.querySelector('.nm')&&/김민지/.test(h.textContent))h.textContent='등록까지 함께할게요';
+}
 if(FU_TOKEN){
-  fuCall('getFollowup',{token:FU_TOKEN}).then(function(r){
+  (window.__fuFirst||fuCall('getFollowup',{token:FU_TOKEN})).then(function(r){
     var nm=document.querySelector('h1 .nm');
+    document.documentElement.classList.remove('fu-wait');
     if(r&&r.status==='success'){
-      if(nm&&r.name)nm.textContent=r.name+'님';
+      if(nm&&r.name){nm.textContent=r.name+'님';try{localStorage.setItem('sahajeil-followup:nm:'+FU_TOKEN,r.name);}catch(e){}}
       if(typeof r.cur==='number'&&r.cur>=0&&r.cur<=steps.length)cur=r.cur;
       if(r.docsDone&&r.docsDone.length===3)for(var i=0;i<3;i++)docs[i]=!!r.docsDone[i];
       if(typeof r.now==='number')seatSkew=r.now-Date.now();
@@ -625,8 +646,8 @@ if(FU_TOKEN){
     }else if(r&&r.code==='notfound'){
       var h=document.querySelector('h1');if(h)h.textContent='링크를 확인해 주세요';
       var p=document.getElementById('ptxt');if(p)p.textContent='학원에 문의해 주세요 (051-207-2556)';
-    }
-  }).catch(function(){ /* 인터넷이 약해도 안내 페이지는 그대로 보여요 */ });
+    }else{fuNoName();}
+  }).catch(function(){ /* 인터넷이 약해도 안내 페이지는 그대로 보여요 */ fuNoName(); });
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
