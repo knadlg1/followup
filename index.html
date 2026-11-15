@@ -768,7 +768,7 @@ function seatLive(){
 function fmtLeft(ms){var s=Math.max(0,Math.floor(ms/1000));return pad2(Math.floor(s/3600))+':'+pad2(Math.floor(s%3600/60))+':'+pad2(s%60);}
 /* 예약한 뒤에는 "학원에 알리고 자리 선택" 버튼에 내 자리와 남은 시간(빨간 숫자)이 보여요. 학원이 확정하면 "확정 등록" */
 function notifyBtnLabel(){
-  if(!seatLive())return '학원에 알리고 자리 선택';
+  if(!seatLive())return '자리 선택';
   if(seat.confirmed)return '<span class="nbl">내 자리 '+esc(seat.id)+'<br><b class="okc">확정 등록</b></span>';
   return '<span class="nbl">내 자리 '+esc(seat.id)+'<br><b class="rcd" id="btncd">'+fmtLeft(seat.at+SEAT_HOLD-nowMs())+'</b></span>';
 }
