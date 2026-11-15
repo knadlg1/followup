@@ -651,7 +651,7 @@ var EXT='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden
 var LOGO=document.getElementById('logoimg').src;
 var G24=(document.querySelector('img.g24')||{}).src||'';
 
-var steps=['상담 완료','내일배움카드 준비','수강신청','서류준비','결제 및 등록'];
+var steps=['학원 문의','내일배움카드 준비','수강신청','서류준비','결제 및 등록'];
 var docNames=['주민등록등본 1매','졸업증명서 1매','사진 2매'];
 var cur=1, docs=[false,false,false], err='', focusId=null, anim=null;
 
@@ -1318,7 +1318,7 @@ function render(){
     var box, right='';
     if(i===0){
       box='<span class="ck"><span class="box on">'+CHECK+'</span></span>';
-      right='<span class="rt">11월 13일 전화 상담</span>';
+
     }else if(done||isCur){
       box='<label class="ck"><input type="checkbox" id="ck'+i+'" autocomplete="off" aria-label="'+steps[i]+' 끝냈어요" '+(done?'checked ':'')+'onchange="toggle('+i+',this.checked)"><span class="box'+(isCur?' now':'')+(anim&&anim.done===i?' pop':'')+'">'+CHECK+'</span></label>';
       right=done?'<span class="tag ok">완료</span>':'<span class="nowwrap"><svg class="arw" width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="M0 4h9V0l8 7-8 7v-4H0z"/></svg>'+(i===1?'<button type="button" class="lnk pri inl" onclick="openTut(this)">카드 발급 따라하기</button>':(i===2?'<a class="lnk pri inl sm" href="https://m.work24.go.kr/hr/a/a/3100/selectTracseDetl.do?tracseId=AIG20250000502127&amp;tracseTme=5&amp;crseTracseSe=C0061&amp;trainstCstmrId=500020019231" target="_blank" rel="noopener" aria-label="고용24 바로가기"><span class="g24chip"><img src="'+G24+'" alt="고용24" width="63" height="20"></span>바로가기'+EXT+'</a>':'<span class="tag now">Now</span>'))+'</span>';
