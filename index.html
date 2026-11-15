@@ -550,10 +550,10 @@ h2{font-size:calc(18px*var(--fk,1));font-weight:700;margin:0 0 10px}
 @keyframes draw{0%{stroke-dashoffset:100}65%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
 @keyframes pulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(3.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){
-  .fab,.pulse,.arw,.box.pop,.box.pop svg path,.step.enter{animation:none}
+  .fab,.arw,.box.pop,.box.pop svg path,.step.enter{animation:none}
   .box.pop svg path{stroke-dashoffset:0}
   .tut,.tsheet{transition:none}
-  .draw{animation:none;stroke-dashoffset:0}
+  /* 지도 위 안내 애니메이션(경로 그리기·핀 깜빡임·움직이는 점)은 길 안내의 핵심이라 '애니메이션 줄이기' 설정과 상관없이 항상 움직여요 */
   .fill{transition:none}
 }
 
@@ -1383,11 +1383,6 @@ function render(){
 
 render();
 
-try{
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    var ms=document.querySelectorAll('.mv'); for(var q=0;q<ms.length;q++){ if(ms[q].parentNode) ms[q].parentNode.removeChild(ms[q]); }
-  }
-}catch(e){}
 </script>
 </body>
 </html>
