@@ -14,7 +14,13 @@
 <meta property="og:url" content="https://knadlg1.github.io/followup/">
 <meta name="description" content="사하제일간호학원 수강 등록 안내">
 <link rel="preconnect" href="https://us-central1-my-attendance-8122d.cloudfunctions.net" crossorigin>
-<style>html.fu-wait h1{visibility:hidden}</style>
+<style>
+html.fu-wait main.wrap>section.card,html.fu-wait main.wrap>footer{visibility:hidden}
+#gone{display:none}
+html.fu-gone #gone{display:block}
+html.fu-gone main.wrap>section.card:not(#gone),html.fu-gone main.wrap>footer,html.fu-gone .float{display:none!important}
+#gone .gonetx{margin:10px 0 18px;font-size:calc(16px*var(--fk,1));line-height:1.6;color:#4b5563}
+</style>
 <script>
 /* 개인 링크(?t=)로 열면 내 정보 요청을 페이지 맨 앞에서 바로 시작하고, 응답이 오기 전에는 예시 이름(김민지님)이 보이지 않게 가려요.
    이전에 받은 이름이 이 폰에 있으면 바로 보여줘요. (본문 아래쪽 스크립트가 이 요청 결과를 이어받아요) */
@@ -23,8 +29,9 @@
   if(!/^[A-Za-z0-9_-]{20,64}$/.test(t))return;
   var cached='';try{cached=localStorage.getItem('sahajeil-followup:nm:'+t)||'';}catch(e){}
   if(cached){document.addEventListener('DOMContentLoaded',function(){var n=document.querySelector('h1 .nm');if(n)n.textContent=cached+'님';});}
-  else document.documentElement.className+=' fu-wait';
+  document.documentElement.className+=' fu-wait'; /* 삭제된 링크일 수 있어서, 확인되기 전까지 본문은 가려 둬요 */
   window.__fuFirst=fetch('https://us-central1-my-attendance-8122d.cloudfunctions.net/getFollowup',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({token:t})}).then(function(r){return r.json();});
+  setTimeout(function(){var d=document.documentElement;if(!d.classList.contains('fu-wait'))return;d.classList.remove('fu-wait');var h=document.querySelector('h1');if(h&&h.querySelector('.nm')&&/김민지/.test(h.textContent))h.textContent='등록까지 함께할게요';},8000);
 }catch(e){}})();
 </script>
 <script>
@@ -602,6 +609,12 @@ h2{font-size:calc(18px*var(--fk,1));font-weight:700;margin:0 0 10px}
     </div>
   </header>
 
+  <section class="card" id="gone" aria-label="학원 문의">
+    <h1>링크를 확인해 주세요</h1>
+    <p class="gonetx">이 링크는 더 이상 사용할 수 없어요.<br>궁금한 점은 학원으로 문의해 주세요.</p>
+    <div class="pbtns"><a class="cb kk" href="https://open.kakao.com/o/suMJ6Sqd" target="_blank" rel="noopener">카톡으로 문의</a><a class="cb tel" href="tel:0512072556">전화 051-207-2556</a></div>
+  </section>
+
   <section class="card" aria-label="진행 상황">
     <h1><mark class="nm">김민지님</mark>, 등록까지 함께할게요</h1>
     <div class="prow"><p class="ptxt" id="ptxt"></p><!--trust--><p class="trust"><span class="tl"><img class="g24" src="data:image/png;base64,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" alt="고용24" width="138" height="44"><span class="tt">에 등록된 과정이에요</span></span></p><!--/trust--></div>
@@ -713,8 +726,8 @@ if(FU_TOKEN){
       saveLocalState();
       render();
     }else if(r&&r.code==='notfound'){
-      var h=document.querySelector('h1');if(h)h.textContent='링크를 확인해 주세요';
-      var p=document.getElementById('ptxt');if(p)p.textContent='학원에 문의해 주세요 (051-207-2556)';
+      document.documentElement.classList.add('fu-gone');
+      try{localStorage.removeItem('sahajeil-followup:nm:'+FU_TOKEN);localStorage.removeItem(STATE_KEY);}catch(e){}
     }else{fuNoName();}
   }).catch(function(){ /* 인터넷이 약해도 안내 페이지는 그대로 보여요 */ fuNoName(); });
 }
