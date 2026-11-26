@@ -392,7 +392,7 @@ h2{font-size:calc(18px*var(--fk,1));font-weight:700;margin:0 0 10px}
 .thd{position:relative;flex:none;display:flex;align-items:center;justify-content:flex-end;min-height:52px;padding:8px 8px 0 16px;background:var(--paper)}
 .tx{width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center}
 .tx:focus-visible,.tb:focus-visible,.tc:focus-visible,.tseg button:focus-visible,.tkk:focus-visible{outline:3px solid #6fa396;outline-offset:2px}
-.tbody{flex:1;overflow-y:auto;padding:14px 16px 20px}
+.tbody{flex:1;overflow-y:auto;padding:14px 16px 20px;touch-action:pan-y}
 .tq{font-size:calc(18px*var(--fk,1));font-weight:700;margin:8px 0 14px}
 .tc{display:flex;align-items:center;gap:14px;width:100%;min-height:84px;margin-bottom:10px;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .tc:active{background:var(--accent-soft)}
@@ -422,10 +422,6 @@ h2{font-size:calc(18px*var(--fk,1));font-weight:700;margin:0 0 10px}
 .tb.pri{flex:1.7;background:var(--accent);border-color:var(--accent);color:#fff}
 .tb:disabled{opacity:.4;cursor:default}
 .tbody.pickmode{display:flex;align-items:center;justify-content:center;padding:0 16px 40px}
-.tbody.swn{animation:swn .26s ease-out}.tbody.swp{animation:swp .26s ease-out}
-@keyframes swn{from{opacity:.15;transform:translateX(34px)}to{opacity:1;transform:none}}
-@keyframes swp{from{opacity:.15;transform:translateX(-34px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.tbody.swn,.tbody.swp{animation:none}}
 .pick{display:flex;gap:14px;width:100%}
 .pk{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:190px;border:2px solid var(--lav);border-radius:20px;background:#fff;color:var(--ink);font:inherit;cursor:pointer}
 .pk:active{background:var(--accent-soft);transform:scale(.98)}
@@ -1126,8 +1122,8 @@ var SHOTPOS={
 var TS_MO=[
  {t:'앱 열고 로그인 누르기',k:0,o:0,shot:1,app:1,hideT:1,html:''},
  {t:'간편인증 누르기',k:'a1',o:0,shot:1,hideT:1,html:''},
- {t:'인증 앱 고르기',k:'a2',o:0,shot:1,mo:'평소 쓰는 인증 앱을 눌러요. 카카오톡, 네이버, 통신사PASS 등이 있어요.'},
- {t:'내 정보 넣고 다음',k:'a3',o:0,shot:1,mo:'이름, 생년월일 8자리, 휴대폰 번호를 넣고 [다음]을 눌러요. 그다음 폰으로 온 인증 요청을 승인하면 로그인이 끝나요.'},
+ {t:'인증 앱 고르기',k:'a2',o:0,shot:1,hideT:1,html:''},
+ {t:'내 정보 넣고 다음',k:'a3',o:0,shot:1,hideT:1,html:''},
  {t:'전체메뉴 누르기',k:'m1',o:2,shot:1,hideT:1,html:''},
  {t:'직업 능력 개발 누르기',k:'m2',o:2,shot:1,hideT:1,html:''},
  {t:'아래로 내리기',k:'m3',o:2,shot:1,hideT:1,html:''},
@@ -1274,11 +1270,11 @@ var TPH='<svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden
 var TPC='<svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="4" y="7" width="32" height="21" rx="3" stroke="#24403c" stroke-width="2.4"/><path d="M14 34h12M20 28v6" stroke="#24403c" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function renderTut(){
   var b=document.getElementById('tbody'),f=document.getElementById('tft'),L=tsList(TUT.env),n=L.length,h='',s=L[TUT.i],call=!!(s&&s.help);
-  if(TUT.confirm){renderConfirm(b,f);return;}
+  if(TUT.confirm){renderConfirm(b,f);tutIn(b);return;}
   if(!TUT.env){
     h='<div class="pick"><button type="button" class="pk" onclick="tutEnv(\'mo\')">'+TPH+'<b>모바일</b></button>'
      +'<button type="button" class="pk" onclick="tutEnv(\'pc\')">'+TPC+'<b>PC</b></button></div>';
-    b.className='tbody pickmode';b.innerHTML=h;f.innerHTML='';f.hidden=true;return;
+    b.className='tbody pickmode';b.innerHTML=h;f.innerHTML='';f.hidden=true;tutIn(b);return;
   }
   var dots='';for(var d=0;d<n;d++)dots+='<span class="'+(d===TUT.i?'on':(d<TUT.i?'dn':''))+'"></span>';
   h='<div class="tseg" role="group" aria-label="화면 종류"><button type="button" class="'+(TUT.env==='mo'?'on':'')+'" aria-pressed="'+(TUT.env==='mo')+'" onclick="tutEnv(\'mo\')">모바일</button><button type="button" class="'+(TUT.env==='pc'?'on':'')+'" aria-pressed="'+(TUT.env==='pc')+'" onclick="tutEnv(\'pc\')">PC</button></div>'
@@ -1287,22 +1283,58 @@ function renderTut(){
    +'<h3 class="tstep'+(s.hideT?' vh':'')+'">'+s.t+'</h3>'+(s.html!==undefined?'<div class="tdesc'+(s.stk?' stk':'')+'">'+s.html+'</div>':'<p class="tdesc">'+(s.both||s[TUT.env])+'</p>')
    +(s.app?'<a class="lnk pri app" href="https://m.work24.go.kr/cm/main.do" target="_blank" rel="noopener"><img class="appbtn" src="'+W24APP+'" alt="" width="30" height="30">고용24 바로가기'+EXT+'</a>':'')+(s.link?'<a class="lnk" href="'+(TUT.env==='mo'?'https://m.work24.go.kr':'https://www.work24.go.kr')+'" target="_blank" rel="noopener">'+(s.linkT||'고용24 열기')+EXT+'</a>':'')
    +(s.shot?'<div class="tstage">'+mock(TUT.env,s.k)+'</div>':'');
-  b.className='tbody';if(TUT.dir){void b.offsetWidth;b.className='tbody sw'+(TUT.dir>0?'n':'p');TUT.dir=0;}b.innerHTML=h;b.scrollTop=0;showCall(call);revealRing(b);if(s)fuSave({guideStep:TUT.i+1});
+  b.className='tbody';b.innerHTML=h;b.scrollTop=0;tutIn(b);showCall(call);revealRing(b);if(s)fuSave({guideStep:TUT.i+1});
   f.hidden=false;
   f.innerHTML='<button type="button" class="tb" onclick="tutGo(-1)"'+(TUT.i===0?' disabled':'')+'>이전</button>'+(call?'':'<a class="tb tk" href="https://open.kakao.com/o/suMJ6Sqd" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#3a1d1d" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.8 5.3 4.6 6.7l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.5.1 1 .1 1.4.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>잘 안될때</a>')
    +(TUT.i===n-1?'<button type="button" class="tb pri" onclick="tutDone()">다 했어요</button>':'<button type="button" class="tb pri" onclick="tutGo(1)">다음</button>');
 }
 function tutEnv(e){var k=TUT.env?tsList(TUT.env)[TUT.i].o:0,L=tsList(e),j=0;while(j<L.length-1&&L[j].o<k)j++;TUT.env=e;TUT.i=j;TUT.confirm=false;renderTut();}
-function tutGo(d){var n=tsList(TUT.env).length,j=Math.max(0,Math.min(n-1,TUT.i+d));if(j===TUT.i)return;TUT.dir=d;TUT.i=j;renderTut();}
-/* 화면을 옆으로 밀어도 이전·다음 단계로 (왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전) */
-(function(){var b=document.getElementById('tbody');if(!b)return;var sx=0,sy=0,st=0,ok=false;
-  b.addEventListener('touchstart',function(e){ok=e.touches.length===1&&!!TUT.env&&!TUT.confirm;if(!ok)return;var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();},{passive:true});
-  b.addEventListener('touchend',function(e){if(!ok)return;ok=false;var t=e.changedTouches[0];if(!t)return;var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)<56||Math.abs(dx)<Math.abs(dy)*1.6||Date.now()-st>800)return;tutGo(dx<0?1:-1);},{passive:true});
-  b.addEventListener('touchcancel',function(){ok=false;},{passive:true});
+/* 단계 넘길 때: 지금 화면이 옆으로 빠지고 새 화면이 반대쪽에서 들어와요. 무거운 그림은 화면이 안 보이는 동안 그려서 끊기지 않게 해요 */
+var TSW=0,SLIDE=46;
+function tutReduce(){try{return window.matchMedia('(prefers-reduced-motion:reduce)').matches;}catch(e){return false;}}
+function tutIn(b){
+  var d=TUT.dir;TUT.dir=0;
+  if(!d||tutReduce()){b.style.transition='';b.style.transform='';b.style.opacity='';return;}
+  b.style.transition='none';b.style.transform='translateX('+(d*SLIDE)+'px)';b.style.opacity='0';void b.offsetWidth;
+  b.style.transition='transform .22s cubic-bezier(.2,.8,.3,1),opacity .2s ease-out';b.style.transform='';b.style.opacity='';
+}
+function tutGo(d){
+  var n=tsList(TUT.env).length,j=Math.max(0,Math.min(n-1,TUT.i+d));if(j===TUT.i||TSW)return;
+  var b=document.getElementById('tbody');
+  if(!b||TUT.confirm||!TUT.env||tutReduce()){TUT.i=j;renderTut();return;}
+  TSW=1;b.style.transition='transform .14s ease-in,opacity .14s ease-in';b.style.transform='translateX('+(-d*SLIDE)+'px)';b.style.opacity='0';
+  setTimeout(function(){TUT.i=j;TUT.dir=d;try{renderTut();}finally{TSW=0;}},140);
+}
+/* 손가락을 따라 화면이 살짝 움직이고, 놓으면 넘어가거나 제자리로 돌아와요 (왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전) */
+(function(){var b=document.getElementById('tbody');if(!b)return;var sx=0,sy=0,st=0,ok=false,drag=false;
+  function can(dx){var n=tsList(TUT.env).length;return dx<0?TUT.i<n-1:TUT.i>0;}
+  b.addEventListener('touchstart',function(e){ok=e.touches.length===1&&!!TUT.env&&!TUT.confirm&&!TSW;drag=false;if(!ok)return;var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();},{passive:true});
+  b.addEventListener('touchmove',function(e){if(!ok||TSW)return;var t=e.touches[0];if(!t)return;var dx=t.clientX-sx,dy=t.clientY-sy;
+    if(!drag){if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.3)drag=true;else return;}
+    b.style.transition='none';b.style.transform='translateX('+Math.round(dx*(can(dx)?.55:.15))+'px)';b.style.opacity=String(1-Math.min(.45,Math.abs(dx)/420));},{passive:true});
+  b.addEventListener('touchend',function(e){if(!ok)return;ok=false;if(!drag)return;drag=false;var t=e.changedTouches[0];if(!t)return;var dx=t.clientX-sx,dy=t.clientY-sy,ax=Math.abs(dx);
+    if(can(dx)&&ax>Math.abs(dy)*1.3&&(ax>=70||(ax>=38&&Date.now()-st<260)))tutGo(dx<0?1:-1);
+    else{b.style.transition='transform .2s ease-out,opacity .2s ease-out';b.style.transform='';b.style.opacity='';}
+  },{passive:true});
+  b.addEventListener('touchcancel',function(){if(!drag)return;ok=false;drag=false;b.style.transition='transform .2s ease-out,opacity .2s ease-out';b.style.transform='';b.style.opacity='';},{passive:true});
 })();
+/* 화면 그림(JPEG)을 미리 준비: 한 번 변환해 두면 단계가 바뀔 때마다 큰 데이터를 다시 읽지 않아서 부드러워요 */
+var SHOTPRE=0;
+function tutPreload(){
+  if(SHOTPRE||!window.fetch||!window.URL)return;SHOTPRE=1;
+  var q=0;(function next(){
+    if(q>=SHOT.length)return;var k=q++,u=SHOT[k];
+    if(typeof u!=='string'||u.indexOf('data:')!==0){next();return;}
+    fetch(u).then(function(r){return r.blob();}).then(function(bl){
+      var bu=URL.createObjectURL(bl),im=new Image();im.src=bu;
+      var done=function(){SHOT[k]=bu;setTimeout(next,0);};
+      if(im.decode)im.decode().then(done,done);else im.onload=done;
+    }).catch(function(){setTimeout(next,0);});
+  })();
+}
 function openTut(btn){
   TUT.opener=btn||document.activeElement;TUT.env=null;TUT.i=0;TUT.confirm=false;
-  var o=document.getElementById('tut');o.hidden=false;document.body.style.overflow='hidden';renderTut();
+  var o=document.getElementById('tut');o.hidden=false;document.body.style.overflow='hidden';renderTut();tutPreload();
   void o.offsetWidth;o.classList.add('show');
   var c=o.querySelector('.tx');if(c)try{c.focus({preventScroll:true});}catch(e){}
 }
