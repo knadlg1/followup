@@ -422,6 +422,10 @@ h2{font-size:calc(18px*var(--fk,1));font-weight:700;margin:0 0 10px}
 .tb.pri{flex:1.7;background:var(--accent);border-color:var(--accent);color:#fff}
 .tb:disabled{opacity:.4;cursor:default}
 .tbody.pickmode{display:flex;align-items:center;justify-content:center;padding:0 16px 40px}
+.tbody.swn{animation:swn .26s ease-out}.tbody.swp{animation:swp .26s ease-out}
+@keyframes swn{from{opacity:.15;transform:translateX(34px)}to{opacity:1;transform:none}}
+@keyframes swp{from{opacity:.15;transform:translateX(-34px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tbody.swn,.tbody.swp{animation:none}}
 .pick{display:flex;gap:14px;width:100%}
 .pk{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:190px;border:2px solid var(--lav);border-radius:20px;background:#fff;color:var(--ink);font:inherit;cursor:pointer}
 .pk:active{background:var(--accent-soft);transform:scale(.98)}
@@ -1283,13 +1287,19 @@ function renderTut(){
    +'<h3 class="tstep'+(s.hideT?' vh':'')+'">'+s.t+'</h3>'+(s.html!==undefined?'<div class="tdesc'+(s.stk?' stk':'')+'">'+s.html+'</div>':'<p class="tdesc">'+(s.both||s[TUT.env])+'</p>')
    +(s.app?'<a class="lnk pri app" href="https://m.work24.go.kr/cm/main.do" target="_blank" rel="noopener"><img class="appbtn" src="'+W24APP+'" alt="" width="30" height="30">고용24 바로가기'+EXT+'</a>':'')+(s.link?'<a class="lnk" href="'+(TUT.env==='mo'?'https://m.work24.go.kr':'https://www.work24.go.kr')+'" target="_blank" rel="noopener">'+(s.linkT||'고용24 열기')+EXT+'</a>':'')
    +(s.shot?'<div class="tstage">'+mock(TUT.env,s.k)+'</div>':'');
-  b.className='tbody';b.innerHTML=h;b.scrollTop=0;showCall(call);revealRing(b);if(s)fuSave({guideStep:TUT.i+1});
+  b.className='tbody';if(TUT.dir){void b.offsetWidth;b.className='tbody sw'+(TUT.dir>0?'n':'p');TUT.dir=0;}b.innerHTML=h;b.scrollTop=0;showCall(call);revealRing(b);if(s)fuSave({guideStep:TUT.i+1});
   f.hidden=false;
   f.innerHTML='<button type="button" class="tb" onclick="tutGo(-1)"'+(TUT.i===0?' disabled':'')+'>이전</button>'+(call?'':'<a class="tb tk" href="https://open.kakao.com/o/suMJ6Sqd" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#3a1d1d" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.8 5.3 4.6 6.7l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.5.1 1 .1 1.4.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>잘 안될때</a>')
    +(TUT.i===n-1?'<button type="button" class="tb pri" onclick="tutDone()">다 했어요</button>':'<button type="button" class="tb pri" onclick="tutGo(1)">다음</button>');
 }
 function tutEnv(e){var k=TUT.env?tsList(TUT.env)[TUT.i].o:0,L=tsList(e),j=0;while(j<L.length-1&&L[j].o<k)j++;TUT.env=e;TUT.i=j;TUT.confirm=false;renderTut();}
-function tutGo(d){var n=tsList(TUT.env).length;TUT.i=Math.max(0,Math.min(n-1,TUT.i+d));renderTut();}
+function tutGo(d){var n=tsList(TUT.env).length,j=Math.max(0,Math.min(n-1,TUT.i+d));if(j===TUT.i)return;TUT.dir=d;TUT.i=j;renderTut();}
+/* 화면을 옆으로 밀어도 이전·다음 단계로 (왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전) */
+(function(){var b=document.getElementById('tbody');if(!b)return;var sx=0,sy=0,st=0,ok=false;
+  b.addEventListener('touchstart',function(e){ok=e.touches.length===1&&!!TUT.env&&!TUT.confirm;if(!ok)return;var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();},{passive:true});
+  b.addEventListener('touchend',function(e){if(!ok)return;ok=false;var t=e.changedTouches[0];if(!t)return;var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)<56||Math.abs(dx)<Math.abs(dy)*1.6||Date.now()-st>800)return;tutGo(dx<0?1:-1);},{passive:true});
+  b.addEventListener('touchcancel',function(){ok=false;},{passive:true});
+})();
 function openTut(btn){
   TUT.opener=btn||document.activeElement;TUT.env=null;TUT.i=0;TUT.confirm=false;
   var o=document.getElementById('tut');o.hidden=false;document.body.style.overflow='hidden';renderTut();
